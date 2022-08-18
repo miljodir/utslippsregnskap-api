@@ -1,6 +1,8 @@
 import React from "react";
 import { render } from "react-dom";
 import Plot from "react-plotly.js";
+import "@miljodirektoratet/md-css";
+import { MdButton } from "@miljodirektoratet/md-react";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -18,13 +20,13 @@ const App = () => {
 
   if (isLoading) {
     return <p>Henter data</p>;
-  } else if (data.length == 0) {
+  } else if (data.length === 0) {
     return <p>Har ikke fått data</p>;
   }
 
   return (
     <div>
-      {JSON.stringify(data)}
+      <MdButton>Sylteagurk</MdButton>
       <Plot
         data={[
           {

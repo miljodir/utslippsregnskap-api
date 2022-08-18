@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@miljodirektoratet/md-css": "^0.0.3",
-    "@miljodirektoratet/md-react": "^0.0.4",
+    "@miljodirektoratet/md-css": "^0.0.4",
+    "@miljodirektoratet/md-react": "^0.0.6",
     "plotly.js": "^2.14.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

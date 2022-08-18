@@ -12,7 +12,8 @@ app.config.update(
 
 df = pd.read_parquet("../data/utslippsdata_med_type.pq")
 df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
-nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith('navn')]].drop_duplicates()
+nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplicates()
+
 
 @app.after_request
 def security_headers(response):
@@ -38,7 +39,7 @@ def utslipp_jordbruk():
 @app.get("/utslipp/nivaa")
 def utslipp_nivaa_navn():
     out = {}
-    for r in nivaa_navn.to_dict(orient='records'):
+    for r in nivaa_navn.to_dict(orient="records"):
         modify = out
         for column, value in r.items():
             if not isinstance(value, str):
@@ -46,19 +47,18 @@ def utslipp_nivaa_navn():
             if value not in modify:
                 modify[value] = {}
             modify = modify[value]
+
     def pretty(tree):
         values = []
         for key, children in tree.items():
             if not children:
-                values.append({ 'kategori': key })
+                values.append({"kategori": key})
             else:
-                values.append({
-                    'kategori': key,
-                    'nivaa': pretty(children)
-                })
+                values.append({"kategori": key, "nivaa": pretty(children)})
         return values
+
     return jsonify(pretty(out))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)

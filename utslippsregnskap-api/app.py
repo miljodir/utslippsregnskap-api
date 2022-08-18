@@ -38,15 +38,15 @@ def utslipp_jordbruk():
 
 @app.get("/utslipp/nivaa")
 def utslipp_nivaa_navn():
-    out = {}
+    tree = {}
     for r in nivaa_navn.to_dict(orient="records"):
-        modify = out
+        current_node = tree
         for column, value in r.items():
             if not isinstance(value, str):
                 break
-            if value not in modify:
-                modify[value] = {}
-            modify = modify[value]
+            if value not in current_node:
+                current_node[value] = {}
+            current_node = current_node[value]
 
     def pretty(tree):
         values = []
@@ -57,7 +57,7 @@ def utslipp_nivaa_navn():
                 values.append({"kategori": key, "nivaa": pretty(children)})
         return values
 
-    return jsonify(pretty(out))
+    return jsonify(pretty(tree))
 
 
 if __name__ == "__main__":

@@ -32,3 +32,6 @@ def utslipp_jordbruk():
         .to_dict()
     )
     return next_df
+
+if __name__ == '__main__':
+    app.run(debug=True)

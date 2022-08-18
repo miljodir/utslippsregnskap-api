@@ -15,7 +15,7 @@ df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
 
 @app.after_request
 def security_headers(response):
-    response.headers.access_control_allow_origin = "*"
+    response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -29,7 +29,7 @@ def utslipp_jordbruk():
         df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk") & (df.versjon == "2019-11-01") & (df.type == "POP")]
         .groupby(["aar", "versjon"], as_index=False, observed=True)
         .agg({"utslipp": sum})
-        .to_dict()
+        .to_dict(orient="list")
     )
     return next_df
 

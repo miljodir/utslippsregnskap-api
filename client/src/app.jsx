@@ -1,5 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
+import Plot from "react-plotly.js";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -7,7 +8,8 @@ const App = () => {
 
   React.useEffect(() => {
     async function fetchData() {
-      const data = await fetch("http://localhost:5000/utslipp/jordbruk");
+      const response = await fetch("http://localhost:5000/utslipp/jordbruk");
+      const data = await response.json();
       setData(data);
       setIsLoading(false);
     }
@@ -20,7 +22,21 @@ const App = () => {
     return <p>Har ikke fått data</p>;
   }
 
-  return <div>{JSON.stringify(data)}</div>;
+  return (
+    <div>
+      {JSON.stringify(data)}
+      <Plot
+        data={[
+          {
+            x: [...data.aar],
+            y: [...data.utslipp],
+            type: "scatter",
+            mode: "lines",
+          },
+        ]}
+      ></Plot>
+    </div>
+  );
 };
 
 render(<App />, document.getElementById("app"));

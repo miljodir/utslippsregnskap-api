@@ -29,12 +29,16 @@ def security_headers(response):
 @app.get("/utslipp/jordbruk")
 def utslipp_jordbruk():
     komponent_filter = request.args.get("komponenter")
+    nivaa_filter = request.args.get("nivaa")
     jordbruk = df.loc[
         (df.norskkilde_nivaa1_navn == "Jordbruk") & (df.versjon == "2019-11-01")
     ]
     if komponent_filter:
         komponent_filter = komponent_filter.split(',')
         jordbruk = jordbruk.loc[(jordbruk.komponent.isin(komponent_filter))]
+    if nivaa_filter:
+        nivaa_filter = nivaa_filter.split(',')
+        jordbruk = jordbruk.loc[(jordbruk.norskkilde_nivaa3_navn.isin(nivaa_filter))]
     jordbruk = jordbruk.groupby(["aar", "versjon"], as_index=False, observed=True)
 
     return jordbruk.agg({"utslipp": sum}).to_dict(orient="list")

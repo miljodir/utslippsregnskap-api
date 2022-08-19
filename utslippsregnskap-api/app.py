@@ -35,6 +35,18 @@ def utslipp_jordbruk():
     return next_df
 
 
+@app.get("/utslipp/jordbruk/nivaa3")
+def utslipp_jordbruk_nivaa3():
+    nivaa3 = (df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk")].norskkilde_nivaa3_navn.unique()).to_list()
+    return jsonify(dict({"nivaa3": nivaa3}))
+
+
+@app.get("/utslipp/jordbruk/komponenter")
+def utslipp_jordbruk_komponenter():
+    komponenter = (df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk")].komponent.unique()).to_list()
+    return jsonify(dict({"komponenter": komponenter}))
+
+
 @app.get("/utslipp/nivaa")
 def utslipp_nivaa_navn():
     tree = {}

@@ -2,13 +2,11 @@ import React from "react";
 import { render } from "react-dom";
 import Plot from "react-plotly.js";
 import "@miljodirektoratet/md-css";
-import { MdButton, MdCheckbox, MdChecklist } from "@miljodirektoratet/md-react";
+import { MdCheckbox } from "@miljodirektoratet/md-react";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [data, setData] = React.useState([]);
-  const [allChecked, setAllChecked] = React.useState(false);
-  const [nivaaer, setNivaaer] = React.useState([]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -20,11 +18,19 @@ const App = () => {
     fetchData();
   }, []);
 
+  const [komponenter, setKomponenter] = React.useState([]);
   React.useEffect(() => {
     async function fetchData() {
-      const response = await fetch("http://localhost:5000/utslipp/nivaa");
+      const response = await fetch(
+        "http://localhost:5000/utslipp/jordbruk/komponenter"
+      );
       const data = await response.json();
-      setNivaaer(data);
+      setKomponenter(
+        data.komponenter.map((komponent) => ({
+          komponentNavn: komponent,
+          checked: false,
+        }))
+      );
     }
     fetchData();
   }, [isLoading]);
@@ -35,43 +41,35 @@ const App = () => {
     return <p>Har ikke fått data</p>;
   }
 
-  const renderCheckboxes = (nivå) => {
-    if (!nivå.nivaa) {
-      return (
-        <MdCheckbox
-          label={nivå.kategori}
-          checked={allChecked}
-          onChange={() => setAllChecked(!allChecked)}
-        />
-      );
-    } else {
-      return (
-        <MdChecklist
-          label={nivå.kategori}
-          checked={allChecked}
-          onChange={() => setAllChecked(!allChecked)}
-        >
-          {nivå.nivaa.map(renderCheckboxes)}
-        </MdChecklist>
-      );
-    }
+  const updateKomponentFilter = (index) => {
+    const nextKomponentFilter = [...komponenter];
+    nextKomponentFilter[index].checked = !nextKomponentFilter[index].checked;
+    setKomponenter(nextKomponentFilter);
   };
 
   return (
     <div>
-      <MdButton>Sylteagurk</MdButton>
-      <Plot
-        data={[
-          {
-            x: [...data.aar],
-            y: [...data.utslipp],
-            type: "scatter",
-            mode: "lines",
-          },
-        ]}
-      ></Plot>
-      {JSON.stringify(nivaaer)}
-      {nivaaer.map(renderCheckboxes)}
+      <div style={{ display: "flex", gap: "2rem" }}>
+        {komponenter.map((komponent, index) => (
+          <MdCheckbox
+            label={komponent.komponentNavn}
+            checked={komponent.checked}
+            onChange={() => updateKomponentFilter(index)}
+          />
+        ))}
+      </div>
+      <div style={{ marginTop: "1rem" }}>
+        <Plot
+          data={[
+            {
+              x: [...data.aar],
+              y: [...data.utslipp],
+              type: "scatter",
+              mode: "lines",
+            },
+          ]}
+        ></Plot>
+      </div>
     </div>
   );
 };

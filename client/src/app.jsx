@@ -6,13 +6,16 @@ import { MdCheckbox } from "@miljodirektoratet/md-react";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
-  const [data, setData] = React.useState([]);
+  const [jordbrukUtslipp, setJordbrukUtslipp] = React.useState([]);
+  const [komponenter, setKomponenter] = React.useState([]);
+  const [nivaa3, setNivaa3] = React.useState([]);
 
-  async function fetchJordbrukUtslipp(komponenter) {
+  async function fetchJordbrukUtslipp(komponenter, nivaa) {
     const komponentFilter = komponenter.join(",");
-    const response = await fetch(`http://localhost:5000/utslipp/jordbruk?komponenter=${komponentFilter}`);
+    const nivaaFilter = nivaa.join(",");
+    const response = await fetch(`http://localhost:5000/utslipp/jordbruk?komponenter=${komponentFilter}&nivaa=${nivaaFilter}`);
     const data = await response.json();
-    setData(data);
+    setJordbrukUtslipp(data);
     setIsLoading(false);
   }
   async function fetchKomponenter() {
@@ -20,6 +23,12 @@ const App = () => {
         "http://localhost:5000/utslipp/jordbruk/komponenter"
       );
       return await response.json();
+  }
+  async function fetchNivaa3() {
+    const response = await fetch(
+        "http://localhost:5000/utslipp/jordbruk/nivaa3"
+    );
+    return await response.json();
   }
 
   React.useEffect(() => {
@@ -32,22 +41,31 @@ const App = () => {
           checked: false,
         }))
       );
-      await fetchJordbrukUtslipp(komponentListe)
+      const nivaaJson = await fetchNivaa3();
+      const nivaaListe = nivaaJson.nivaa3;
+      setNivaa3(
+          nivaaListe.map((nivaa) => ({
+            nivaa: nivaa,
+            checked: false,
+          }))
+      );
+      await fetchJordbrukUtslipp(komponentListe, nivaaListe);
     }
     initData()
   }, [])
 
-  const [komponenter, setKomponenter] = React.useState([]);
+
 
   React.useEffect(() => {
-    const filter = komponenter.filter((komponent) => { return komponent.checked; })
-    let selectedKomponenter = filter.map((f) => f.komponentNavn);
-    fetchJordbrukUtslipp(selectedKomponenter);
-  }, [komponenter]);
+    const filter = komponenter.filter((komponent) => komponent.checked)
+    const selectedKomponenter = filter.map((f) => f.komponentNavn);
+    const selectedNivaa = nivaa3.filter((nivaa) => nivaa.checked).map((nivaa) => nivaa.nivaa)
+    fetchJordbrukUtslipp(selectedKomponenter, selectedNivaa);
+  }, [komponenter, nivaa3]);
 
   if (isLoading) {
     return <p>Henter data</p>;
-  } else if (data.length === 0) {
+  } else if (jordbrukUtslipp.length === 0) {
     return <p>Har ikke fått data</p>;
   }
 
@@ -55,6 +73,12 @@ const App = () => {
     const nextKomponentFilter = [...komponenter];
     nextKomponentFilter[index].checked = !nextKomponentFilter[index].checked;
     setKomponenter(nextKomponentFilter);
+  };
+
+  const updateNivaaFilter = (index) => {
+    const nextNivaaFilter = [...nivaa3];
+    nextNivaaFilter[index].checked = !nextNivaaFilter[index].checked;
+    setNivaa3(nextNivaaFilter);
   };
 
   return (
@@ -65,6 +89,17 @@ const App = () => {
             label={komponent.komponentNavn}
             checked={komponent.checked}
             onChange={() => updateKomponentFilter(index)}
+            key={komponent.komponentNavn}
+          />
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "2rem" , marginTop: "1rem"}}>
+        {nivaa3.map((nivaa, index) => (
+          <MdCheckbox
+            label={nivaa.nivaa}
+            checked={nivaa.checked}
+            onChange={() => updateNivaaFilter(index)}
+            key={nivaa.nivaa}
           />
         ))}
       </div>
@@ -72,8 +107,8 @@ const App = () => {
         <Plot
           data={[
             {
-              x: [...data.aar],
-              y: [...data.utslipp],
+              x: [...jordbrukUtslipp.aar],
+              y: [...jordbrukUtslipp.utslipp],
               type: "scatter",
               mode: "lines",
             },

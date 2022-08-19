@@ -1,6 +1,5 @@
-from flask import Flask, jsonify
 import pandas as pd
-import itertools
+from flask import Flask, jsonify
 
 app = Flask("utslippsregnskap")
 app.config.update(

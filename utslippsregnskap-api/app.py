@@ -28,14 +28,12 @@ def security_headers(response):
 
 @app.get("/utslipp/jordbruk")
 def utslipp_jordbruk():
-    komponent_arg = request.args.get("komponenter")
-    komponent_filter = []
-    if komponent_arg != None:
-        komponent_filter = request.args.get("komponenter").split(",")
+    komponent_filter = request.args.get("komponenter")
     jordbruk = df.loc[
         (df.norskkilde_nivaa1_navn == "Jordbruk") & (df.versjon == "2019-11-01")
     ]
     if komponent_filter:
+        komponent_filter = komponent_filter.split(',')
         jordbruk = jordbruk.loc[(jordbruk.komponent.isin(komponent_filter))]
     jordbruk = jordbruk.groupby(["aar", "versjon"], as_index=False, observed=True)
 

@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 app = Flask("utslippsregnskap")
 app.config.update(
@@ -17,7 +17,9 @@ nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplica
 @app.after_request
 def security_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers[
+        "Strict-Transport-Security"
+    ] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
@@ -26,24 +28,35 @@ def security_headers(response):
 
 @app.get("/utslipp/jordbruk")
 def utslipp_jordbruk():
-    next_df = (
-        df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk") & (df.versjon == "2019-11-01") & (df.type == "POP")]
-        .groupby(["aar", "versjon"], as_index=False, observed=True)
-        .agg({"utslipp": sum})
-        .to_dict(orient="list")
-    )
-    return next_df
+    komponent_arg = request.args.get("komponenter")
+    komponent_filter = []
+    if komponent_arg != None:
+        komponent_filter = request.args.get("komponenter").split(",")
+    jordbruk = df.loc[
+        (df.norskkilde_nivaa1_navn == "Jordbruk") & (df.versjon == "2019-11-01")
+    ]
+    if komponent_filter:
+        jordbruk = jordbruk.loc[(jordbruk.komponent.isin(komponent_filter))]
+    jordbruk = jordbruk.groupby(["aar", "versjon"], as_index=False, observed=True)
+
+    return jordbruk.agg({"utslipp": sum}).to_dict(orient="list")
 
 
 @app.get("/utslipp/jordbruk/nivaa3")
 def utslipp_jordbruk_nivaa3():
-    nivaa3 = (df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk")].norskkilde_nivaa3_navn.unique()).to_list()
+    nivaa3 = (
+        df.loc[
+            (df.norskkilde_nivaa1_navn == "Jordbruk")
+        ].norskkilde_nivaa3_navn.unique()
+    ).to_list()
     return jsonify(dict({"nivaa3": nivaa3}))
 
 
 @app.get("/utslipp/jordbruk/komponenter")
 def utslipp_jordbruk_komponenter():
-    komponenter = (df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk")].komponent.unique()).to_list()
+    komponenter = (
+        df.loc[(df.norskkilde_nivaa1_navn == "Jordbruk")].komponent.unique()
+    ).to_list()
     return jsonify(dict({"komponenter": komponenter}))
 
 

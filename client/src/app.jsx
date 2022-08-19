@@ -8,32 +8,42 @@ const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [data, setData] = React.useState([]);
 
-  React.useEffect(() => {
-    async function fetchData() {
-      const response = await fetch("http://localhost:5000/utslipp/jordbruk");
-      const data = await response.json();
-      setData(data);
-      setIsLoading(false);
-    }
-    fetchData();
-  }, []);
-
-  const [komponenter, setKomponenter] = React.useState([]);
-  React.useEffect(() => {
-    async function fetchData() {
-      const response = await fetch(
+  async function fetchJordbrukUtslipp(komponenter) {
+    const komponentFilter = komponenter.join(",");
+    const response = await fetch(`http://localhost:5000/utslipp/jordbruk?komponenter=${komponentFilter}`);
+    const data = await response.json();
+    setData(data);
+    setIsLoading(false);
+  }
+  async function fetchKomponenter() {
+    const response = await fetch(
         "http://localhost:5000/utslipp/jordbruk/komponenter"
       );
-      const data = await response.json();
+      return await response.json();
+  }
+
+  React.useEffect(() => {
+    async function initData() {
+      const komponentJson =  await fetchKomponenter()
+      const komponentListe = komponentJson.komponenter;
       setKomponenter(
-        data.komponenter.map((komponent) => ({
+        komponentListe.map((komponent) => ({
           komponentNavn: komponent,
           checked: false,
         }))
       );
+      await fetchJordbrukUtslipp(komponentListe)
     }
-    fetchData();
-  }, [isLoading]);
+    initData()
+  }, [])
+
+  const [komponenter, setKomponenter] = React.useState([]);
+
+  React.useEffect(() => {
+    const filter = komponenter.filter((komponent) => { return komponent.checked; })
+    let selectedKomponenter = filter.map((f) => f.komponentNavn);
+    fetchJordbrukUtslipp(selectedKomponenter);
+  }, [komponenter]);
 
   if (isLoading) {
     return <p>Henter data</p>;

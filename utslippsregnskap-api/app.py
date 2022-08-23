@@ -8,11 +8,9 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
 )
 
-
 df = pd.read_parquet("../data/utslippsdata_med_type.pq")
 df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
 nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplicates()
-
 
 @app.after_request
 def security_headers(response):
@@ -20,11 +18,10 @@ def security_headers(response):
     response.headers[
         "Strict-Transport-Security"
     ] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    # response.headers["Content-Security-Policy"] = "default-src 'self'"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
-
 
 @app.get("/utslipp/jordbruk")
 def utslipp_jordbruk():

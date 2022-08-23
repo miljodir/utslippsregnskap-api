@@ -1,6 +1,11 @@
 module.exports = {
   base: '/static/',
   build: {
-    outDir: '../utslippsregnskap-api/static',
+    outDir: './static',
+  },
+  server: {
+    proxy: {
+      '/utslipp': 'http://localhost:5000',
+    },
   },
 };

@@ -14,7 +14,7 @@ const App = () => {
     const komponentFilter = komponenter.join(',');
     const nivaaFilter = nivaa.join(',');
     const response = await fetch(
-      `http://localhost:5000/utslipp/jordbruk?komponenter=${komponentFilter}&nivaa=${nivaaFilter}`
+      `/utslipp/jordbruk?komponenter=${komponentFilter}&nivaa=${nivaaFilter}`
     );
     const data = await response.json();
     setJordbrukUtslipp(data);
@@ -22,11 +22,11 @@ const App = () => {
     setIsLoading(false);
   }
   async function fetchKomponenter() {
-    const response = await fetch('http://localhost:5000/utslipp/jordbruk/komponenter');
+    const response = await fetch('/utslipp/jordbruk/komponenter');
     return await response.json();
   }
   async function fetchNivaa3() {
-    const response = await fetch('http://localhost:5000/utslipp/jordbruk/nivaa3');
+    const response = await fetch('/utslipp/jordbruk/nivaa3');
     return await response.json();
   }
 

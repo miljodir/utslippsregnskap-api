@@ -1,5 +1,4 @@
-utslippsregnskap frontend
-==
+# utslippsregnskap frontend
 
 To set up development using nvm:
 

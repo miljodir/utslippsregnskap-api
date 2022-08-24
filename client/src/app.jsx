@@ -2,7 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import Plot from 'react-plotly.js';
 import '@miljodirektoratet/md-css';
-import { MdCheckbox } from '@miljodirektoratet/md-react';
+import ComponentFilter from './components/ComponentFilter';
+import LevelFilter from './components/LevelFilter';
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -81,24 +82,10 @@ const App = () => {
   return (
     <div>
       <div style={{ display: 'flex', gap: '2rem' }}>
-        {komponenter.map((komponent, index) => (
-          <MdCheckbox
-            label={komponent.komponentNavn}
-            checked={komponent.checked}
-            onChange={() => updateKomponentFilter(index)}
-            key={komponent.komponentNavn}
-          />
-        ))}
+        <ComponentFilter components={komponenter} onComponentsUpdated={updateKomponentFilter} />
       </div>
       <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-        {nivaa3.map((nivaa, index) => (
-          <MdCheckbox
-            label={nivaa.nivaa}
-            checked={nivaa.checked}
-            onChange={() => updateNivaaFilter(index)}
-            key={nivaa.nivaa}
-          />
-        ))}
+        <LevelFilter levels={levels} onLevelsUpdated={updateNivaaFilter} />
       </div>
       <div style={{ marginTop: '1rem' }}>
         <Plot

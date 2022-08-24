@@ -1,4 +1,7 @@
+import os
+import pyarrowfs_adlgen2
 import pandas as pd
+import azure.identity
 from flask import Flask, g
 
 from api import api
@@ -11,7 +14,13 @@ app.config.update(
 )
 app.register_blueprint(api, url_prefix="/utslipp")
 
-df = pd.read_parquet("../data/utslippsdata_med_type.pq")
+file_location = os.environ['DATA_PATH']
+storage_account = os.environ['STORAGE_ACCOUNT']
+credential = azure.identity.DefaultAzureCredential()
+
+filesystem = pyarrowfs_adlgen2.AccountHandler.from_account_name(storage_account, credential).to_fs()
+
+df = pd.read_parquet(file_location, filesystem=filesystem)
 df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
 nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplicates()
 
@@ -20,7 +29,6 @@ nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplica
 def set_df_on_request_context():
     g.df = df
     g.nivaa_navn = nivaa_navn
-
 
 @app.after_request
 def security_headers(response):

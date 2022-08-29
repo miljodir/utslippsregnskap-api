@@ -2,6 +2,7 @@ import os
 import pyarrowfs_adlgen2
 import pandas as pd
 import azure.identity
+import azure.keyvault.secrets
 from flask import Flask, g
 
 from api import api
@@ -14,11 +15,18 @@ app.config.update(
 )
 app.register_blueprint(api, url_prefix="/utslipp")
 
+
+kv_name = os.environ['KV_NAME']
 file_location = os.environ['DATA_PATH']
 storage_account = os.environ['STORAGE_ACCOUNT']
 credential = azure.identity.DefaultAzureCredential()
 
+secrets_client = azure.keyvault.secrets.SecretClient(f'https://{kv_name}.vault.azure.net', credential)
 filesystem = pyarrowfs_adlgen2.AccountHandler.from_account_name(storage_account, credential).to_fs()
+
+client_id = secrets_client.get_secret('client-id').value
+tenant_id = secrets_client.get_secret('tenant-id').value
+client_secret = secrets_client.get_secret('client-secret').value
 
 df = pd.read_parquet(file_location, filesystem=filesystem)
 df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})

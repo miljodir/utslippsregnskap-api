@@ -11,14 +11,14 @@ api = Blueprint("api", __name__)
 def check_logged_in():
     if "user" not in session:
         resp = make_response({"message": "Unauthorized"}, 401)
-        resp.headers["Location"] = url_for('login-api.login', _external=True)
+        resp.headers["Location"] = url_for("login-api.login", _external=True)
         return resp
     else:
         user_exp = session.get("user")["exp"]
         if time.time() >= user_exp:
             session.clear()
             resp = make_response({"message": "Session expired"}, 401)
-            resp.headers["Location"] = url_for('login-api.login', _external=True)
+            resp.headers["Location"] = url_for("login-api.login", _external=True)
             return resp
 
 

@@ -24,7 +24,7 @@ def create_login_api(tenant_id, client_id, client_secret):
             scopes=[], state=session["state"], redirect_uri=url_for("login-api.logged_in", _external=True)
         )
         return redirect(auth_url)
-    
+
     @login_api.get("/logged-in")
     def logged_in():
         if request.args.get("state") != session["state"]:
@@ -33,9 +33,13 @@ def create_login_api(tenant_id, client_id, client_secret):
             raise RuntimeError("Got error from Microsoft")
         code = request.args.get("code")
         if code:
-            result = auth.acquire_token_by_authorization_code(code=code, scopes=[], redirect_uri=url_for("login-api.logged_in", _external=True))
+            result = auth.acquire_token_by_authorization_code(
+                code=code, scopes=[], redirect_uri=url_for("login-api.logged_in", _external=True)
+            )
             if "error" in result:
-                raise RuntimeError(f"Got error when acquiring token from MS {result.get('error')} {result.get('error_description')}")
+                raise RuntimeError(
+                    f"Got error when acquiring token from MS {result.get('error')} {result.get('error_description')}"
+                )
             session["user"] = result["id_token_claims"]
             return redirect("/")
         else:
@@ -44,6 +48,8 @@ def create_login_api(tenant_id, client_id, client_secret):
     @login_api.get("/logout")
     def logout():
         session.clear()
-        return redirect(f'{authority}?post_logout_redirect_uri={url_for("index", _external=True)}')
+        return redirect(
+            f'{authority}/oauth2/v2.0/logout?post_logout_redirect_uri={url_for("static", _external=True, filename="index.html")}'
+        )
 
     return login_api

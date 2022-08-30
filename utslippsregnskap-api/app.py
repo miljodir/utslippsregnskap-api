@@ -49,6 +49,7 @@ def set_df_on_request_context():
     g.df = df
     g.nivaa_navn = nivaa_navn
 
+
 @app.after_request
 def security_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"

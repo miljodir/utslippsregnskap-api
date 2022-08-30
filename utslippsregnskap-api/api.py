@@ -1,9 +1,25 @@
-from flask import g, jsonify, request
+import time
+from flask import g, jsonify, request, session, make_response, url_for
 from flask.blueprints import Blueprint
 
 import data
 
 api = Blueprint("api", __name__)
+
+
+@api.before_request
+def check_logged_in():
+    if "user" not in session:
+        resp = make_response({"message": "Unauthorized"}, 401)
+        resp.headers["Location"] = url_for('login-api.login', _external=True)
+        return resp
+    else:
+        user_exp = session.get("user")["exp"]
+        if time.time() >= user_exp:
+            session.clear()
+            resp = make_response({"message": "Session expired"}, 401)
+            resp.headers["Location"] = url_for('login-api.login', _external=True)
+            return resp
 
 
 @api.get("/jordbruk")

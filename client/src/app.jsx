@@ -24,10 +24,18 @@ const App = () => {
   }
   async function fetchKomponenter() {
     const response = await fetch('/utslipp/jordbruk/komponenter');
+    const { status } = response;
+    if (status == 401 || status == 403) {
+      window.location = response.headers.get('Location');
+    }
     return await response.json();
   }
   async function fetchNivaa3() {
     const response = await fetch('/utslipp/jordbruk/nivaa3');
+    const { status } = response;
+    if (status == 401 || status == 403) {
+      window.location = response.headers.get('Location');
+    }
     return await response.json();
   }
 

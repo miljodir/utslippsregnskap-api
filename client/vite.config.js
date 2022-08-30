@@ -2,6 +2,7 @@ module.exports = {
   base: '/static/',
   build: {
     outDir: './static',
+    sourcemap: true,
   },
   server: {
     proxy: {

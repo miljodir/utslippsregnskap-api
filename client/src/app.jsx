@@ -6,7 +6,6 @@ import ComponentFilter from './components/ComponentFilter';
 import LevelFilter from './components/LevelFilter';
 
 const App = () => {
-  const [isLoading, setIsLoading] = React.useState(true);
   const [jordbrukUtslipp, setJordbrukUtslipp] = React.useState([]);
   const [komponenter, setKomponenter] = React.useState([]);
   const [nivaa3, setNivaa3] = React.useState([]);
@@ -19,8 +18,6 @@ const App = () => {
     );
     const data = await response.json();
     setJordbrukUtslipp(data);
-
-    setIsLoading(false);
   }
   async function fetchKomponenter() {
     const response = await fetch('/utslipp/jordbruk/komponenter');
@@ -69,12 +66,6 @@ const App = () => {
     fetchJordbrukUtslipp(selectedKomponenter, selectedNivaa);
   }, [komponenter, nivaa3]);
 
-  if (isLoading) {
-    return <p>Henter data</p>;
-  } else if (jordbrukUtslipp.length === 0) {
-    return <p>Har ikke fått data</p>;
-  }
-
   const updateKomponentFilter = (index) => {
     const nextKomponentFilter = [...komponenter];
     nextKomponentFilter[index].checked = !nextKomponentFilter[index].checked;
@@ -87,28 +78,32 @@ const App = () => {
     setNivaa3(nextNivaaFilter);
   };
 
-  return (
-    <div>
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <ComponentFilter components={komponenter} onComponentsUpdated={updateKomponentFilter} />
-      </div>
-      <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-        <LevelFilter levels={levels} onLevelsUpdated={updateNivaaFilter} />
-      </div>
-      <div style={{ marginTop: '1rem' }}>
-        <Plot
-          data={[
-            {
-              x: [...jordbrukUtslipp.aar],
-              y: [...jordbrukUtslipp.utslipp],
-              type: 'scatter',
-              mode: 'lines',
-            },
-          ]}
-        ></Plot>
-      </div>
-    </div>
-  );
+  if (nivaa3.length > 0 && komponenter.length > 0) {
+    return (
+        <div>
+          <div style={{display: 'flex', gap: '2rem'}}>
+            <ComponentFilter components={komponenter} onComponentsUpdated={updateKomponentFilter}/>
+          </div>
+          <div style={{display: 'flex', gap: '2rem', marginTop: '1rem'}}>
+            <LevelFilter levels={nivaa3} onLevelsUpdated={updateNivaaFilter}/>
+          </div>
+          <div style={{marginTop: '1rem'}}>
+            <Plot
+                data={[
+                  {
+                    x: [...jordbrukUtslipp.aar],
+                    y: [...jordbrukUtslipp.utslipp],
+                    type: 'scatter',
+                    mode: 'lines',
+                  },
+                ]}
+            ></Plot>
+          </div>
+        </div>
+    );
+  } else {
+    return <h1>NO DATA</h1>
+  }
 };
 
 render(<App />, document.getElementById('app'));

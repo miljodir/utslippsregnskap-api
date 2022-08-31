@@ -4,9 +4,9 @@ import pandas as pd
 import azure.identity
 import azure.keyvault.secrets
 import tempfile
-from flask import Flask, g, session, redirect
+from flask import Flask
 from flask_session import Session
-from api import api
+from api import create_api
 from login_api import create_login_api
 
 app = Flask("utslippsregnskap")
@@ -36,18 +36,11 @@ client_id = secrets_client.get_secret("client-id").value
 tenant_id = secrets_client.get_secret("tenant-id").value
 client_secret = secrets_client.get_secret("client-secret").value
 
-app.register_blueprint(api, url_prefix="/utslipp")
-app.register_blueprint(create_login_api(tenant_id, client_id, client_secret))
-
 df = pd.read_parquet(file_location, filesystem=filesystem)
 df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
-nivaa_navn = df.loc[:, df.columns[df.columns.str.endswith("navn")]].drop_duplicates()
 
-
-@app.before_request
-def set_df_on_request_context():
-    g.df = df
-    g.nivaa_navn = nivaa_navn
+app.register_blueprint(create_api(df), url_prefix="/utslipp")
+app.register_blueprint(create_login_api(tenant_id, client_id, client_secret))
 
 
 @app.after_request

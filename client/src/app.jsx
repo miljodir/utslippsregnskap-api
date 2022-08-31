@@ -1,109 +1,129 @@
 import React from 'react';
 import { render } from 'react-dom';
-import Plot from 'react-plotly.js';
-import '@miljodirektoratet/md-css';
+import { getInitialData } from './api';
 import ComponentFilter from './components/ComponentFilter';
 import LevelFilter from './components/LevelFilter';
+import JordbrukPlot from './components/JordbrukPlot';
+import '@miljodirektoratet/md-css';
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'data_fetch_failed':
+      return {
+        ...state,
+        hasError: true,
+        loading: false,
+      };
+    case 'update_base_data':
+      return {
+        ...state,
+        loading: false,
+        komponenter: action.komponenter,
+        nivåer: action.nivåer,
+        komponentFilter: action.komponenter.map((komponent) => {
+          return {
+            komponentNavn: komponent,
+            checked: false,
+          };
+        }),
+        nivåFilter: action.nivåer.map((nivå) => {
+          return {
+            nivå: nivå,
+            checked: false,
+          };
+        }),
+      };
+    case 'update_komponent_filter':
+      const komponentIndex = action.indexToToggle;
+      const nextKomponentFilter = [...state.komponentFilter];
+      nextKomponentFilter[komponentIndex].checked =
+        !nextKomponentFilter[komponentIndex].checked;
+      return {
+        ...state,
+        komponentFilter: nextKomponentFilter,
+      };
+    case 'update_nivå_filter':
+      const nivåIndex = action.indexToToggle;
+      const nextNivåFilter = [...state.nivåFilter];
+      nextNivåFilter[nivåIndex].checked = !nextNivåFilter[nivåIndex].checked;
+      return {
+        ...state,
+        nivåFilter: nextNivåFilter,
+      };
+  }
+}
 
 const App = () => {
-  const [jordbrukUtslipp, setJordbrukUtslipp] = React.useState([]);
-  const [komponenter, setKomponenter] = React.useState([]);
-  const [nivaa3, setNivaa3] = React.useState([]);
-
-  async function fetchJordbrukUtslipp(komponenter, nivaa) {
-    const komponentFilter = komponenter.join(',');
-    const nivaaFilter = nivaa.join(',');
-    const response = await fetch(
-      `/utslipp/jordbruk?komponenter=${komponentFilter}&nivaa=${nivaaFilter}`
-    );
-    const data = await response.json();
-    setJordbrukUtslipp(data);
-  }
-  async function fetchKomponenter() {
-    const response = await fetch('/utslipp/jordbruk/komponenter');
-    const { status } = response;
-    if (status == 401 || status == 403) {
-      window.location = response.headers.get('Location');
-    }
-    return await response.json();
-  }
-  async function fetchNivaa3() {
-    const response = await fetch('/utslipp/jordbruk/nivaa3');
-    const { status } = response;
-    if (status == 401 || status == 403) {
-      window.location = response.headers.get('Location');
-    }
-    return await response.json();
-  }
+  const [state, dispatch] = React.useReducer(reducer, { loading: true });
 
   React.useEffect(() => {
-    async function initData() {
-      const komponentJson = await fetchKomponenter();
-      const komponentListe = komponentJson.komponenter;
-      setKomponenter(
-        komponentListe.map((komponent) => ({
-          komponentNavn: komponent,
-          checked: false,
-        }))
-      );
-      const nivaaJson = await fetchNivaa3();
-      const nivaaListe = nivaaJson.nivaa3;
-      setNivaa3(
-        nivaaListe.map((nivaa) => ({
-          nivaa: nivaa,
-          checked: false,
-        }))
-      );
-      await fetchJordbrukUtslipp(komponentListe, nivaaListe);
+    async function setupInitialState() {
+      try {
+        const results = await getInitialData();
+        const [komponentHttpResult, nivåHttpResult] = results;
+        dispatch({
+          type: 'update_base_data',
+          komponenter: komponentHttpResult.value.komponenter,
+          nivåer: nivåHttpResult.value.nivaa3,
+        });
+      } catch (error) {
+        dispatch({
+          type: 'data_fetch_failed',
+          error,
+        });
+      }
     }
-    initData();
+    setupInitialState();
   }, []);
 
-  React.useEffect(() => {
-    const filter = komponenter.filter((komponent) => komponent.checked);
-    const selectedKomponenter = filter.map((f) => f.komponentNavn);
-    const selectedNivaa = nivaa3.filter((nivaa) => nivaa.checked).map((nivaa) => nivaa.nivaa);
-    fetchJordbrukUtslipp(selectedKomponenter, selectedNivaa);
-  }, [komponenter, nivaa3]);
-
   const updateKomponentFilter = (index) => {
-    const nextKomponentFilter = [...komponenter];
-    nextKomponentFilter[index].checked = !nextKomponentFilter[index].checked;
-    setKomponenter(nextKomponentFilter);
+    dispatch({
+      type: 'update_komponent_filter',
+      indexToToggle: index,
+    });
   };
 
-  const updateNivaaFilter = (index) => {
-    const nextNivaaFilter = [...nivaa3];
-    nextNivaaFilter[index].checked = !nextNivaaFilter[index].checked;
-    setNivaa3(nextNivaaFilter);
+  const updateNivåFilter = (index) => {
+    dispatch({
+      type: 'update_nivå_filter',
+      indexToToggle: index,
+    });
   };
 
-  if (nivaa3.length > 0 && komponenter.length > 0) {
-    return (
-        <div>
-          <div style={{display: 'flex', gap: '2rem'}}>
-            <ComponentFilter components={komponenter} onComponentsUpdated={updateKomponentFilter}/>
-          </div>
-          <div style={{display: 'flex', gap: '2rem', marginTop: '1rem'}}>
-            <LevelFilter levels={nivaa3} onLevelsUpdated={updateNivaaFilter}/>
-          </div>
-          <div style={{marginTop: '1rem'}}>
-            <Plot
-                data={[
-                  {
-                    x: [...jordbrukUtslipp.aar],
-                    y: [...jordbrukUtslipp.utslipp],
-                    type: 'scatter',
-                    mode: 'lines',
-                  },
-                ]}
-            ></Plot>
-          </div>
-        </div>
-    );
-  } else {
-    return <h1>NO DATA</h1>
+  if (state.hasError) {
+    return <h1>Noe gikk galt ved henting av data</h1>;
   }
+  if (state.loading) {
+    return <h1>Henter data om komponenter og nivåer...</h1>;
+  }
+
+  const { komponentFilter, nivåFilter } = state;
+  const komponentFilterNames = komponentFilter
+    .filter(({ checked }) => checked)
+    .map(({ komponentNavn }) => komponentNavn);
+  const nivåFilterNames = nivåFilter
+    .filter(({ checked }) => checked)
+    .map(({ nivå }) => nivå);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '2rem' }}>
+        <ComponentFilter
+          components={komponentFilter}
+          onComponentsUpdated={updateKomponentFilter}
+        />
+      </div>
+      <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+        <LevelFilter levels={nivåFilter} onLevelsUpdated={updateNivåFilter} />
+      </div>
+      <div style={{ marginTop: '1rem' }}>
+        <JordbrukPlot
+          komponenter={komponentFilterNames}
+          nivåer={nivåFilterNames}
+        />
+      </div>
+    </div>
+  );
 };
 
 render(<App />, document.getElementById('app'));

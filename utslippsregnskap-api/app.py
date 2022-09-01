@@ -8,6 +8,7 @@ from flask import Flask
 from flask_session import Session
 from api import create_api
 from login_api import create_login_api
+from data import DatalakeStorage
 
 app = Flask("utslippsregnskap")
 with open("/dev/urandom", mode="rb") as urandom:
@@ -26,20 +27,21 @@ Session(app)
 
 kv_name = os.environ["KV_NAME"]
 file_location = os.environ["DATA_PATH"]
+container, file_location = file_location.split("/")[0], "/".join(file_location.split("/")[1:])
+
 storage_account = os.environ["STORAGE_ACCOUNT"]
 credential = azure.identity.DefaultAzureCredential()
 
 secrets_client = azure.keyvault.secrets.SecretClient(f"https://{kv_name}.vault.azure.net", credential)
-filesystem = pyarrowfs_adlgen2.AccountHandler.from_account_name(storage_account, credential).to_fs()
+filesystem = pyarrowfs_adlgen2.FilesystemHandler.from_account_name(storage_account, container, credential)
+data_lake = DatalakeStorage(filesystem)
+df = data_lake.load_parquet(file_location)
 
 client_id = secrets_client.get_secret("client-id").value
 tenant_id = secrets_client.get_secret("tenant-id").value
 client_secret = secrets_client.get_secret("client-secret").value
 
-df = pd.read_parquet(file_location, filesystem=filesystem)
-df = df.astype({"versjon": "category", "type": "category", "enhet": "category"})
-
-app.register_blueprint(create_api(df), url_prefix="/utslipp")
+app.register_blueprint(create_api(df, data_lake), url_prefix="/utslipp")
 app.register_blueprint(create_login_api(tenant_id, client_id, client_secret))
 
 

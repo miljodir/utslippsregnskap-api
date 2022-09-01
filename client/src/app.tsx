@@ -5,6 +5,7 @@ import ComponentFilter from './components/ComponentFilter';
 import LevelFilter from './components/LevelFilter';
 import JordbrukPlot from './components/JordbrukPlot';
 import '@miljodirektoratet/md-css';
+import FileUploader from './components/FileUploader';
 
 function reducer(state, action) {
   switch (action.type) {
@@ -105,8 +106,22 @@ const App = () => {
     .filter(({ checked }) => checked)
     .map(({ nivå }) => nivå);
 
+  const onFileUpload = (event) => {
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    fetch(`/utslipp/upload/${file.name}/0`, {
+      method: 'post',
+      body: formData as any,
+    });
+  };
+
   return (
     <div>
+      <div style={{ display: 'flex', gap: '2rem' }}>
+        <FileUploader onChange={onFileUpload} />
+      </div>
+
       <div style={{ display: 'flex', gap: '2rem' }}>
         <ComponentFilter
           components={komponentFilter}

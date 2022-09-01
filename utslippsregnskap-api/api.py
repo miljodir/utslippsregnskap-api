@@ -59,7 +59,8 @@ def create_api(df, storage: data.DatalakeStorage):
     @api.post("/upload/<file_name>/<int:sheet_number>")
     def store_excel_as_pq(file_name, sheet_number: int = 0):
         # sjekk at bruker har lov
-        df = data.excel_to_df(request.stream, sheet_number)
+        df = data.excel_to_df(request.files['file'], sheet_number)
         storage.save_parquet(file_name, df)
+        return {}
 
     return api

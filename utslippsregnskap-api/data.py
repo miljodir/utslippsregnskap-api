@@ -83,7 +83,6 @@ def excel_to_df(file_path_or_handle, sheet_name=0):
         )
         .pipe(make_categories_ordered)
         .rename(columns=str.lower)
-        .rename(columns=lambda col_name: col_name.replace("å", "aa"))
     )
 
 
@@ -94,7 +93,7 @@ class DatalakeStorage:
 
     def load_parquet(self, path):
         return pd.read_parquet(path, filesystem=self.fs_handler.to_fs()).astype(
-            {"versjon": "category", "type": "category", "enhet": "category"}
+            {"versjon": "category"}
         )
 
     def save_parquet(self, path, df: pd.DataFrame, overwrite=False):

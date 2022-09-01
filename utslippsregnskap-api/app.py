@@ -1,14 +1,15 @@
 import os
-import pyarrowfs_adlgen2
-import pandas as pd
+import tempfile
+
 import azure.identity
 import azure.keyvault.secrets
-import tempfile
+import pyarrowfs_adlgen2
 from flask import Flask
 from flask_session import Session
+
 from api import create_api
-from login_api import create_login_api
 from data import DatalakeStorage
+from login_api import create_login_api
 
 app = Flask("utslippsregnskap")
 with open("/dev/urandom", mode="rb") as urandom:

@@ -35,7 +35,6 @@ const JordbrukPlot = ({ komponenter, nivåer }) => {
         const data = await getJordbrukData(komponenter, nivåer);
         dispatch({ type: 'ok', utslippsdata: data });
       } catch (error) {
-        console.error(error);
         dispatch({
           type: 'request_failed',
         });
@@ -52,7 +51,6 @@ const JordbrukPlot = ({ komponenter, nivåer }) => {
   }
 
   const { utslippsdata } = state;
-  console.log(Plot);
   return (
     <Plot
       data={[

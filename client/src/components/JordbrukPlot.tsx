@@ -1,6 +1,6 @@
 import React from 'react';
-import Plot from 'react-plotly.js';
 import { getJordbrukData } from '../api';
+import Plot from 'react-plotly.js';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -35,6 +35,7 @@ const JordbrukPlot = ({ komponenter, nivåer }) => {
         const data = await getJordbrukData(komponenter, nivåer);
         dispatch({ type: 'ok', utslippsdata: data });
       } catch (error) {
+        console.error(error);
         dispatch({
           type: 'request_failed',
         });
@@ -51,6 +52,7 @@ const JordbrukPlot = ({ komponenter, nivåer }) => {
   }
 
   const { utslippsdata } = state;
+  console.log(Plot);
   return (
     <Plot
       data={[

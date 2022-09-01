@@ -1,5 +1,5 @@
 import React from 'react';
-import {MdCheckbox} from "@miljodirektoratet/md-react";
+import { MdCheckbox } from '@miljodirektoratet/md-react';
 
 const ComponentFilter = ({ components, onComponentsUpdated }) => {
   const renderComponentCheckbox = (component, index) => (

@@ -60,7 +60,7 @@ const App = () => {
     async function setupInitialState() {
       try {
         const results = await getInitialData();
-        const [komponentHttpResult, nivåHttpResult] = results;
+        const [komponentHttpResult, nivåHttpResult] = results as any;
         dispatch({
           type: 'update_base_data',
           komponenter: komponentHttpResult.value.komponenter,

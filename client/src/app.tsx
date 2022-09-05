@@ -1,11 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { getInitialData } from './api';
-import ComponentFilter from './components/ComponentFilter';
+import KomponentFilter from './components/KomponentFilter';
 import LevelFilter from './components/LevelFilter';
 import JordbrukPlot from './components/JordbrukPlot';
 import '@miljodirektoratet/md-css';
 import FileUploader from './components/FileUploader';
+import NivåFilter from './components/LevelFilter';
 
 function reducer(state, action) {
   switch (action.type) {
@@ -123,13 +124,16 @@ const App = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '2rem' }}>
-        <ComponentFilter
-          components={komponentFilter}
-          onComponentsUpdated={updateKomponentFilter}
+        <KomponentFilter
+          komponenter={komponentFilter}
+          onKomponentFilterUpdated={updateKomponentFilter}
         />
       </div>
       <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-        <LevelFilter levels={nivåFilter} onLevelsUpdated={updateNivåFilter} />
+        <NivåFilter
+          nivåer={nivåFilter}
+          onNivåFilterUpdated={updateNivåFilter}
+        />
       </div>
       <div style={{ marginTop: '1rem' }}>
         <JordbrukPlot

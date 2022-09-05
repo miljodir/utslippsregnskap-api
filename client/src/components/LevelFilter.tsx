@@ -1,17 +1,26 @@
 import React from 'react';
 import { MdCheckbox } from '@miljodirektoratet/md-react';
+import { NivåFilter } from '../types';
 
-const LevelFilter = ({ levels, onLevelsUpdated }) => {
-  const renderLevelCheckbox = (level, index) => (
+export interface NivåFilterProps {
+  nivåer: NivåFilter[];
+  onNivåFilterUpdated: (index: number) => void;
+}
+
+const NivåFilter: React.FunctionComponent<NivåFilterProps> = ({
+  nivåer,
+  onNivåFilterUpdated,
+}: NivåFilterProps) => {
+  const renderLevelCheckbox = (nivå, index) => (
     <MdCheckbox
-      label={level.nivå}
-      checked={level.checked}
-      onChange={() => onLevelsUpdated(index)}
-      key={level.nivå}
+      label={nivå.nivå}
+      checked={nivå.checked}
+      onChange={() => onNivåFilterUpdated(index)}
+      key={nivå.nivå}
     />
   );
 
-  return <>{levels.map(renderLevelCheckbox)}</>;
+  return <>{nivåer.map(renderLevelCheckbox)}</>;
 };
 
-export default LevelFilter;
+export default NivåFilter;

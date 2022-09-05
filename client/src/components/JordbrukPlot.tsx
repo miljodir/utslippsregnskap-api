@@ -26,6 +26,11 @@ const reducer = (state, action) => {
   }
 };
 
+interface JordbrukPlotProps {
+  komponenter: any;
+  nivåer: any;
+}
+
 const JordbrukPlot = ({ komponenter, nivåer }) => {
   const [state, dispatch] = React.useReducer(reducer, { isLoading: true });
 
